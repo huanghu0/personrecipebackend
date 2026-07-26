@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.personrecipe.mapper.RecipeIngredientMapper">
+
+    <insert id="insertBatch">
+        INSERT INTO recipe_ingredients (recipe_id, name, quantity, image_url, note, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.recipeId}, #{item.name}, #{item.quantity}, #{item.imageUrl}, #{item.note}, #{item.sortOrder})
+        </foreach>
+    </insert>
+
+    <select id="findByRecipeId" resultType="com.personrecipe.entity.RecipeIngredient">
+        SELECT id, recipe_id, name, quantity, image_url, note, sort_order, created_at, updated_at
+        FROM recipe_ingredients
+        WHERE recipe_id = #{recipeId}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <delete id="deleteByRecipeId">
+        DELETE FROM recipe_ingredients
+        WHERE recipe_id = #{recipeId}
+    </delete>
+
+</mapper>

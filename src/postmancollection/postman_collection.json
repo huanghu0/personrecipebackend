@@ -1,0 +1,808 @@
+{
+  "info": {
+    "_postman_id": "6eb40db2-f6fc-4aaa-9b12-personrecipe001",
+    "name": "个人菜谱后端 API",
+    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；上传图片成功后自动保存 coverImageUrl。\n5. 图片上传请求需要在 Body 中重新选择本机图片文件，imageFilePath 仅作说明。\n\n响应约定：code=0 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "wxCode",
+      "value": "postman-mock-openid-001",
+      "type": "string"
+    },
+    {
+      "key": "recipeId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "coverImageUrl",
+      "value": "/uploads/2026/07/26/cover.jpg",
+      "type": "string"
+    },
+    {
+      "key": "ingredientImageUrl",
+      "value": "/uploads/2026/07/26/ingredient.jpg",
+      "type": "string"
+    },
+    {
+      "key": "stepImageUrl",
+      "value": "/uploads/2026/07/26/step.jpg",
+      "type": "string"
+    },
+    {
+      "key": "imageFilePath",
+      "value": "C:/path/to/image.jpg",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - 认证",
+      "item": [
+        {
+          "name": "微信登录（首次自动注册）",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 状态正确', () => pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 500]));",
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data && json.data.token) {",
+                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "  console.log('Token 已自动保存');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{wxCode}}\",\n  \"nickname\": \"Postman测试用户\",\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/wx-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "wx-login"
+              ]
+            },
+            "description": "使用 wx.login() 返回的 code 换取 JWT。首次登录按 openid 自动注册，JWT 有效期 7 天。本地 mock 模式下 code 直接作为 openid。"
+          },
+          "response": [
+            {
+              "name": "成功 - 登录或自动注册",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzM4NCJ9.example.signature\",\n    \"expiresIn\": 604800,\n    \"user\": {\n      \"id\": 1,\n      \"nickname\": \"Postman测试用户\",\n      \"avatarUrl\": \"https://example.com/avatar.png\"\n    }\n  }\n}"
+            },
+            {
+              "name": "失败 - code 为空",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"code 不能为空\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 微信 code 无效",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"微信登录失败: invalid code\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "退出登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0) {",
+                  "  pm.collectionVariables.unset('token');",
+                  "  console.log('本地 Token 已清除');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "将当前 JWT 的 jti 写入 Redis 黑名单，TTL 等于 Token 剩余有效期，并清空用户 session_key。请求成功后测试脚本会清除集合变量 token。"
+          },
+          "response": [
+            {
+              "name": "成功 - 退出登录",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未携带 Token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - Token 已登出",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"登录已失效，请重新登录\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "验证登录状态",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "用于确认 Token 是否有效。"
+          },
+          "response": [
+            {
+              "name": "成功 - Token 有效",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"status\": \"UP\",\n    \"application\": \"personpecipebackend\",\n    \"userId\": 1\n  }\n}"
+            },
+            {
+              "name": "失败 - Token 无效或缺失",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"无效的登录凭证\",\n  \"data\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - 图片",
+      "item": [
+        {
+          "name": "上传图片",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data && json.data.url) {",
+                  "  pm.collectionVariables.set('coverImageUrl', json.data.url);",
+                  "  console.log('coverImageUrl 已自动更新');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "请在 Postman 中选择本机 jpg/png/webp/gif 文件，单张不超过 5MB。",
+                  "type": "file",
+                  "src": "{{imageFilePath}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/files/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "upload"
+              ]
+            },
+            "description": "将图片保存到本地 uploads 目录，返回相对访问 URL。上传成功后脚本会将 URL 保存为 coverImageUrl。"
+          },
+          "response": [
+            {
+              "name": "成功 - 图片已保存",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"url\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
+            },
+            {
+              "name": "失败 - 文件类型不支持",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"仅支持 jpg/png/webp/gif 图片\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 文件超过 5MB",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"图片过大，单张不超过 5MB\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "访问已上传图片",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{coverImageUrl}}",
+              "host": [
+                "{{baseUrl}}{{coverImageUrl}}"
+              ]
+            },
+            "description": "静态图片访问不经过 /api/** 鉴权。响应为图片二进制内容。"
+          },
+          "response": [
+            {
+              "name": "成功 - 返回图片二进制",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "image/jpeg"
+                }
+              ],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "失败 - 文件不存在",
+              "status": "Not Found",
+              "code": 404,
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - 菜谱",
+      "item": [
+        {
+          "name": "创建菜谱",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('recipeId', String(json.data.id));",
+                  "  console.log('recipeId 已自动保存');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"番茄炒蛋\",\n  \"description\": \"酸甜下饭的家常快手菜\",\n  \"coverImageUrl\": \"{{coverImageUrl}}\",\n  \"servings\": 2,\n  \"cookTimeMinutes\": 15,\n  \"ingredients\": [\n    {\n      \"name\": \"鸡蛋\",\n      \"quantity\": \"3个\",\n      \"imageUrl\": \"{{ingredientImageUrl}}\",\n      \"note\": \"提前恢复室温\",\n      \"sortOrder\": 0\n    },\n    {\n      \"name\": \"番茄\",\n      \"quantity\": \"2个\",\n      \"imageUrl\": null,\n      \"note\": \"切块\",\n      \"sortOrder\": 1\n    }\n  ],\n  \"steps\": [\n    {\n      \"stepNumber\": 1,\n      \"description\": \"鸡蛋打散，加少许盐后炒熟盛出\",\n      \"imageUrl\": \"{{stepImageUrl}}\",\n      \"sortOrder\": 1\n    },\n    {\n      \"stepNumber\": 2,\n      \"description\": \"番茄炒出汁，倒入鸡蛋翻炒均匀\",\n      \"imageUrl\": null,\n      \"sortOrder\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ]
+            },
+            "description": "创建当前登录用户的菜谱。ingredients 和 steps 至少各一项，成品图与封面图使用同一个 coverImageUrl。"
+          },
+          "response": [
+            {
+              "name": "成功 - 菜谱已创建",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋\"\n  }\n}"
+            },
+            {
+              "name": "失败 - 菜名为空",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"菜名不能为空\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 没有食材",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"至少添加一种食材\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 步骤序号重复",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"步骤序号不能重复: 1\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "获取菜谱列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ]
+            },
+            "description": "返回当前用户全部未软删除的菜谱，按 updated_at DESC、id DESC 排序，不分页。"
+          },
+          "response": [
+            {
+              "name": "成功 - 有数据",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"番茄炒蛋\",\n      \"description\": \"酸甜下饭的家常快手菜\",\n      \"coverImageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n      \"servings\": 2,\n      \"cookTimeMinutes\": 15,\n      \"updatedAt\": \"2026-07-26T00:30:00\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "成功 - 空列表",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": []\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "获取菜谱详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}"
+              ]
+            },
+            "description": "返回当前用户指定菜谱的基本信息、食材、步骤和当前关联的成品图片。"
+          },
+          "response": [
+            {
+              "name": "成功 - 完整详情",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋\",\n    \"description\": \"酸甜下饭的家常快手菜\",\n    \"coverImageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n    \"servings\": 2,\n    \"cookTimeMinutes\": 15,\n    \"createdAt\": \"2026-07-26T00:20:00\",\n    \"updatedAt\": \"2026-07-26T00:30:00\",\n    \"ingredients\": [\n      {\n        \"id\": 1,\n        \"name\": \"鸡蛋\",\n        \"quantity\": \"3个\",\n        \"imageUrl\": \"/uploads/2026/07/26/ingredient.jpg\",\n        \"note\": \"提前恢复室温\",\n        \"sortOrder\": 0\n      }\n    ],\n    \"steps\": [\n      {\n        \"id\": 1,\n        \"stepNumber\": 1,\n        \"description\": \"鸡蛋打散，加少许盐后炒熟盛出\",\n        \"imageUrl\": \"/uploads/2026/07/26/step.jpg\",\n        \"sortOrder\": 1\n      }\n    ],\n    \"images\": [\n      {\n        \"id\": 1,\n        \"imageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n        \"caption\": null,\n        \"cover\": true,\n        \"sortOrder\": 0\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "失败 - 菜谱不存在、已删除或不属于当前用户",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 404,\n  \"message\": \"菜谱不存在\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - Token 已过期",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"登录已过期，请重新登录\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "更新菜谱",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"番茄炒蛋（改良版）\",\n  \"description\": \"减少糖量的家常版本\",\n  \"coverImageUrl\": \"{{coverImageUrl}}\",\n  \"servings\": 3,\n  \"cookTimeMinutes\": 18,\n  \"ingredients\": [\n    {\n      \"name\": \"鸡蛋\",\n      \"quantity\": \"4个\",\n      \"imageUrl\": \"{{ingredientImageUrl}}\",\n      \"note\": \"打散\",\n      \"sortOrder\": 0\n    },\n    {\n      \"name\": \"番茄\",\n      \"quantity\": \"3个\",\n      \"imageUrl\": null,\n      \"note\": \"去皮切块\",\n      \"sortOrder\": 1\n    }\n  ],\n  \"steps\": [\n    {\n      \"stepNumber\": 1,\n      \"description\": \"鸡蛋快速炒至八成熟后盛出\",\n      \"imageUrl\": \"{{stepImageUrl}}\",\n      \"sortOrder\": 1\n    },\n    {\n      \"stepNumber\": 2,\n      \"description\": \"炒番茄出汁后混合鸡蛋\",\n      \"imageUrl\": null,\n      \"sortOrder\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}"
+              ]
+            },
+            "description": "整体更新菜谱。基本信息覆盖；食材、步骤、成品图数据库关联先删后插。本地旧图片文件保留，但详情不再返回已解除关联的图片。"
+          },
+          "response": [
+            {
+              "name": "成功 - 返回更新后的完整详情",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋（改良版）\",\n    \"description\": \"减少糖量的家常版本\",\n    \"coverImageUrl\": \"/uploads/2026/07/26/new-cover.jpg\",\n    \"servings\": 3,\n    \"cookTimeMinutes\": 18,\n    \"createdAt\": \"2026-07-26T00:20:00\",\n    \"updatedAt\": \"2026-07-26T00:45:00\",\n    \"ingredients\": [],\n    \"steps\": [],\n    \"images\": [\n      {\n        \"id\": 2,\n        \"imageUrl\": \"/uploads/2026/07/26/new-cover.jpg\",\n        \"caption\": null,\n        \"cover\": true,\n        \"sortOrder\": 0\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "失败 - 菜谱不存在",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 404,\n  \"message\": \"菜谱不存在\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 至少一个步骤",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"至少添加一个做法步骤\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "删除菜谱（软删除）",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}"
+              ]
+            },
+            "description": "软删除当前用户的菜谱，仅设置 recipes.deleted_at。食材、步骤、图片数据库记录和本地文件均保留，但列表和详情不会再返回该菜谱。"
+          },
+          "response": [
+            {
+              "name": "成功 - 已软删除",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 菜谱不存在或已经删除",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 404,\n  \"message\": \"菜谱不存在\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

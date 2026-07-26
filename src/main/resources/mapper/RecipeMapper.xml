@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.personrecipe.mapper.RecipeMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO recipes (user_id, name, description, cover_image_url, servings, cook_time_minutes)
+        VALUES (#{userId}, #{name}, #{description}, #{coverImageUrl}, #{servings}, #{cookTimeMinutes})
+    </insert>
+
+    <select id="findAllByUserId" resultType="com.personrecipe.entity.Recipe">
+        SELECT id,
+               user_id,
+               name,
+               description,
+               cover_image_url,
+               servings,
+               cook_time_minutes,
+               deleted_at,
+               created_at,
+               updated_at
+        FROM recipes
+        WHERE user_id = #{userId}
+          AND deleted_at IS NULL
+        ORDER BY updated_at DESC, id DESC
+    </select>
+
+    <select id="findByIdAndUserId" resultType="com.personrecipe.entity.Recipe">
+        SELECT id,
+               user_id,
+               name,
+               description,
+               cover_image_url,
+               servings,
+               cook_time_minutes,
+               deleted_at,
+               created_at,
+               updated_at
+        FROM recipes
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND deleted_at IS NULL
+    </select>
+
+    <update id="update">
+        UPDATE recipes
+        SET name = #{name},
+            description = #{description},
+            cover_image_url = #{coverImageUrl},
+            servings = #{servings},
+            cook_time_minutes = #{cookTimeMinutes}
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND deleted_at IS NULL
+    </update>
+
+    <update id="softDelete">
+        UPDATE recipes
+        SET deleted_at = NOW()
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND deleted_at IS NULL
+    </update>
+
+</mapper>

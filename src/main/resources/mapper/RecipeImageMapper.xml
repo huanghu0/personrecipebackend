@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.personrecipe.mapper.RecipeImageMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO recipe_images (recipe_id, image_url, caption, is_cover, sort_order)
+        VALUES (#{recipeId}, #{imageUrl}, #{caption}, #{isCover}, #{sortOrder})
+    </insert>
+
+    <select id="findByRecipeId" resultType="com.personrecipe.entity.RecipeImage">
+        SELECT id, recipe_id, image_url, caption, is_cover, sort_order, created_at, updated_at
+        FROM recipe_images
+        WHERE recipe_id = #{recipeId}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <delete id="deleteByRecipeId">
+        DELETE FROM recipe_images
+        WHERE recipe_id = #{recipeId}
+    </delete>
+
+</mapper>
