@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "6eb40db2-f6fc-4aaa-9b12-personrecipe001",
     "name": "个人菜谱后端 API",
-    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；上传图片成功后自动保存 coverImageUrl。\n5. 图片上传请求需要在 Body 中重新选择本机图片文件，imageFilePath 仅作说明。\n\n响应约定：code=0 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
+    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；通用图片上传自动保存 coverImageUrl；头像上传自动保存 avatarUrl。\n5. 图片/头像上传请求需要在 Body 中重新选择本机图片文件，imageFilePath / avatarFilePath 仅作说明。\n\n响应约定：code=0 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -65,6 +65,21 @@
     {
       "key": "imageFilePath",
       "value": "C:/path/to/image.jpg",
+      "type": "string"
+    },
+    {
+      "key": "avatarUrl",
+      "value": "/uploads/2026/07/26/avatar.jpg",
+      "type": "string"
+    },
+    {
+      "key": "avatarFilePath",
+      "value": "C:/path/to/avatar.jpg",
+      "type": "string"
+    },
+    {
+      "key": "nickname",
+      "value": "Postman测试用户",
       "type": "string"
     }
   ],
@@ -289,7 +304,503 @@
       ]
     },
     {
-      "name": "02 - 图片",
+      "name": "02 - 用户资料",
+      "item": [
+        {
+          "name": "获取当前资料",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            },
+            "description": "获取当前登录用户的 id / nickname / avatarUrl。"
+          },
+          "response": [
+            {
+              "name": "成功 - 返回用户资料",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+            },
+            {
+              "name": "成功 - 尚未完善资料",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": null,\n    \"avatarUrl\": null\n  }\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "修改资料（可单独改昵称或头像URL）",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data) {",
+                  "  if (json.data.nickname) pm.collectionVariables.set('nickname', json.data.nickname);",
+                  "  if (json.data.avatarUrl) pm.collectionVariables.set('avatarUrl', json.data.avatarUrl);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nickname\": \"{{nickname}}\",\n  \"avatarUrl\": \"{{avatarUrl}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            },
+            "description": "部分更新资料。可只传 nickname、只传 avatarUrl，或两者一起传。至少传一个字段。"
+          },
+          "response": [
+            {
+              "name": "成功 - 同时更新昵称和头像",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+            },
+            {
+              "name": "成功 - 只更新昵称",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nickname\": \"只改昵称\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "profile"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"只改昵称\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+            },
+            {
+              "name": "成功 - 只更新头像URL",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"avatarUrl\": \"/uploads/2026/07/26/new-avatar.jpg\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "profile"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/new-avatar.jpg\"\n  }\n}"
+            },
+            {
+              "name": "失败 - 未传任何字段",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "profile"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"请至少提供昵称或头像\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 昵称为空字符串",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nickname\": \"   \"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "profile"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"昵称不能为空\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "单独修改昵称",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data && json.data.nickname) {",
+                  "  pm.collectionVariables.set('nickname', json.data.nickname);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nickname\": \"{{nickname}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/nickname",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "nickname"
+              ]
+            },
+            "description": "只更新昵称。"
+          },
+          "response": [
+            {
+              "name": "成功 - 昵称已更新",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+            },
+            {
+              "name": "失败 - 昵称为空",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"昵称不能为空\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "单独上传并更新头像",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data && json.data.avatarUrl) {",
+                  "  pm.collectionVariables.set('avatarUrl', json.data.avatarUrl);",
+                  "  console.log('avatarUrl 已自动更新');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "请在 Postman 中选择本机头像图片（jpg/png/webp/gif，单张不超过 5MB）。",
+                  "type": "file",
+                  "src": "{{avatarFilePath}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "avatar"
+              ]
+            },
+            "description": "上传头像文件并直接更新 users.avatar_url。适合小程序 chooseAvatar 选完文件后直接调用。"
+          },
+          "response": [
+            {
+              "name": "成功 - 头像已上传并更新",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
+            },
+            {
+              "name": "失败 - 文件类型不支持",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"仅支持 jpg/png/webp/gif 图片\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 文件超过 5MB",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 400,\n  \"message\": \"图片过大，单张不超过 5MB\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "失败 - 未登录",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 401,\n  \"message\": \"未登录或缺少 Token\",\n  \"data\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - 图片",
       "item": [
         {
           "name": "上传图片",
@@ -433,7 +944,7 @@
       ]
     },
     {
-      "name": "03 - 菜谱",
+      "name": "04 - 菜谱",
       "item": [
         {
           "name": "创建菜谱",

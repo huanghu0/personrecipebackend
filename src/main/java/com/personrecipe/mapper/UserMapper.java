@@ -9,6 +9,8 @@ public interface UserMapper {
 
 	User findByOpenid(@Param("openid") String openid);
 
+	User findById(@Param("id") Long id);
+
 	/**
 	 * 插入后回填自增主键到 user.id。
 	 */

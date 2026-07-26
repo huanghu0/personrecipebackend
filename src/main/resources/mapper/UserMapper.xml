@@ -14,6 +14,13 @@
         WHERE openid = #{openid}
     </select>
 
+    <select id="findById" resultType="com.personrecipe.entity.User">
+        SELECT
+        <include refid="baseColumns"/>
+        FROM users
+        WHERE id = #{id}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (openid, unionid, nickname, avatar_url, session_key, last_login_at)
         VALUES (#{openid}, #{unionid}, #{nickname}, #{avatarUrl}, #{sessionKey}, #{lastLoginAt})
