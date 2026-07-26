@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "6eb40db2-f6fc-4aaa-9b12-personrecipe001",
     "name": "个人菜谱后端 API",
-    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；通用图片上传自动保存 coverImageUrl；头像上传自动保存 avatarUrl。\n5. 图片/头像上传请求需要在 Body 中重新选择本机图片文件，imageFilePath / avatarFilePath 仅作说明。\n\n响应约定：code=0 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
+    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；通用图片上传自动保存 coverImageUrl；头像上传自动保存 avatarUrl。\n5. 图片/头像上传请求需要在 Body 中重新选择本机图片文件，imageFilePath / avatarFilePath 仅作说明。\n\n响应约定：code=200 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -97,7 +97,7 @@
                 "exec": [
                   "pm.test('HTTP 状态正确', () => pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 500]));",
                   "const json = pm.response.json();",
-                  "if (json.code === 0 && json.data && json.data.token) {",
+                  "if (json.code === 200 && json.data && json.data.token) {",
                   "  pm.collectionVariables.set('token', json.data.token);",
                   "  console.log('Token 已自动保存');",
                   "}"
@@ -150,7 +150,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzM4NCJ9.example.signature\",\n    \"expiresIn\": 604800,\n    \"user\": {\n      \"id\": 1,\n      \"nickname\": \"Postman测试用户\",\n      \"avatarUrl\": \"https://example.com/avatar.png\"\n    }\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzM4NCJ9.example.signature\",\n    \"expiresIn\": 604800,\n    \"user\": {\n      \"id\": 1,\n      \"nickname\": \"Postman测试用户\",\n      \"avatarUrl\": \"https://example.com/avatar.png\"\n    }\n  }\n}"
             },
             {
               "name": "失败 - code 为空",
@@ -189,7 +189,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.code === 0) {",
+                  "if (json.code === 200) {",
                   "  pm.collectionVariables.unset('token');",
                   "  console.log('本地 Token 已清除');",
                   "}"
@@ -225,7 +225,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": null\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": null\n}"
             },
             {
               "name": "失败 - 未携带 Token",
@@ -284,7 +284,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"status\": \"UP\",\n    \"application\": \"personpecipebackend\",\n    \"userId\": 1\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"status\": \"UP\",\n    \"application\": \"personpecipebackend\",\n    \"userId\": 1\n  }\n}"
             },
             {
               "name": "失败 - Token 无效或缺失",
@@ -336,7 +336,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
             },
             {
               "name": "成功 - 尚未完善资料",
@@ -349,7 +349,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": null,\n    \"avatarUrl\": null\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": null,\n    \"avatarUrl\": null\n  }\n}"
             },
             {
               "name": "失败 - 未登录",
@@ -375,7 +375,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.code === 0 && json.data) {",
+                  "if (json.code === 200 && json.data) {",
                   "  if (json.data.nickname) pm.collectionVariables.set('nickname', json.data.nickname);",
                   "  if (json.data.avatarUrl) pm.collectionVariables.set('avatarUrl', json.data.avatarUrl);",
                   "}"
@@ -425,7 +425,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
             },
             {
               "name": "成功 - 只更新昵称",
@@ -467,7 +467,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"只改昵称\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"只改昵称\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
             },
             {
               "name": "成功 - 只更新头像URL",
@@ -509,7 +509,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/new-avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/new-avatar.jpg\"\n  }\n}"
             },
             {
               "name": "失败 - 未传任何字段",
@@ -619,7 +619,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.code === 0 && json.data && json.data.nickname) {",
+                  "if (json.code === 200 && json.data && json.data.nickname) {",
                   "  pm.collectionVariables.set('nickname', json.data.nickname);",
                   "}"
                 ]
@@ -668,7 +668,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
             },
             {
               "name": "失败 - 昵称为空",
@@ -707,7 +707,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.code === 0 && json.data && json.data.avatarUrl) {",
+                  "if (json.code === 200 && json.data && json.data.avatarUrl) {",
                   "  pm.collectionVariables.set('avatarUrl', json.data.avatarUrl);",
                   "  console.log('avatarUrl 已自动更新');",
                   "}"
@@ -754,7 +754,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
             },
             {
               "name": "失败 - 文件类型不支持",
@@ -811,7 +811,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.code === 0 && json.data && json.data.url) {",
+                  "if (json.code === 200 && json.data && json.data.url) {",
                   "  pm.collectionVariables.set('coverImageUrl', json.data.url);",
                   "  console.log('coverImageUrl 已自动更新');",
                   "}"
@@ -858,7 +858,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"url\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"url\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
             },
             {
               "name": "失败 - 文件类型不支持",
@@ -955,7 +955,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.code === 0 && json.data && json.data.id) {",
+                  "if (json.code === 200 && json.data && json.data.id) {",
                   "  pm.collectionVariables.set('recipeId', String(json.data.id));",
                   "  console.log('recipeId 已自动保存');",
                   "}"
@@ -1004,7 +1004,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋\"\n  }\n}"
             },
             {
               "name": "失败 - 菜名为空",
@@ -1089,7 +1089,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"番茄炒蛋\",\n      \"description\": \"酸甜下饭的家常快手菜\",\n      \"coverImageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n      \"servings\": 2,\n      \"cookTimeMinutes\": 15,\n      \"updatedAt\": \"2026-07-26T00:30:00\"\n    }\n  ]\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"番茄炒蛋\",\n      \"description\": \"酸甜下饭的家常快手菜\",\n      \"coverImageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n      \"servings\": 2,\n      \"cookTimeMinutes\": 15,\n      \"updatedAt\": \"2026-07-26T00:30:00\"\n    }\n  ]\n}"
             },
             {
               "name": "成功 - 空列表",
@@ -1102,7 +1102,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": []\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": []\n}"
             },
             {
               "name": "失败 - 未登录",
@@ -1149,7 +1149,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋\",\n    \"description\": \"酸甜下饭的家常快手菜\",\n    \"coverImageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n    \"servings\": 2,\n    \"cookTimeMinutes\": 15,\n    \"createdAt\": \"2026-07-26T00:20:00\",\n    \"updatedAt\": \"2026-07-26T00:30:00\",\n    \"ingredients\": [\n      {\n        \"id\": 1,\n        \"name\": \"鸡蛋\",\n        \"quantity\": \"3个\",\n        \"imageUrl\": \"/uploads/2026/07/26/ingredient.jpg\",\n        \"note\": \"提前恢复室温\",\n        \"sortOrder\": 0\n      }\n    ],\n    \"steps\": [\n      {\n        \"id\": 1,\n        \"stepNumber\": 1,\n        \"description\": \"鸡蛋打散，加少许盐后炒熟盛出\",\n        \"imageUrl\": \"/uploads/2026/07/26/step.jpg\",\n        \"sortOrder\": 1\n      }\n    ],\n    \"images\": [\n      {\n        \"id\": 1,\n        \"imageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n        \"caption\": null,\n        \"cover\": true,\n        \"sortOrder\": 0\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋\",\n    \"description\": \"酸甜下饭的家常快手菜\",\n    \"coverImageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n    \"servings\": 2,\n    \"cookTimeMinutes\": 15,\n    \"createdAt\": \"2026-07-26T00:20:00\",\n    \"updatedAt\": \"2026-07-26T00:30:00\",\n    \"ingredients\": [\n      {\n        \"id\": 1,\n        \"name\": \"鸡蛋\",\n        \"quantity\": \"3个\",\n        \"imageUrl\": \"/uploads/2026/07/26/ingredient.jpg\",\n        \"note\": \"提前恢复室温\",\n        \"sortOrder\": 0\n      }\n    ],\n    \"steps\": [\n      {\n        \"id\": 1,\n        \"stepNumber\": 1,\n        \"description\": \"鸡蛋打散，加少许盐后炒熟盛出\",\n        \"imageUrl\": \"/uploads/2026/07/26/step.jpg\",\n        \"sortOrder\": 1\n      }\n    ],\n    \"images\": [\n      {\n        \"id\": 1,\n        \"imageUrl\": \"/uploads/2026/07/26/cover.jpg\",\n        \"caption\": null,\n        \"cover\": true,\n        \"sortOrder\": 0\n      }\n    ]\n  }\n}"
             },
             {
               "name": "失败 - 菜谱不存在、已删除或不属于当前用户",
@@ -1223,7 +1223,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋（改良版）\",\n    \"description\": \"减少糖量的家常版本\",\n    \"coverImageUrl\": \"/uploads/2026/07/26/new-cover.jpg\",\n    \"servings\": 3,\n    \"cookTimeMinutes\": 18,\n    \"createdAt\": \"2026-07-26T00:20:00\",\n    \"updatedAt\": \"2026-07-26T00:45:00\",\n    \"ingredients\": [],\n    \"steps\": [],\n    \"images\": [\n      {\n        \"id\": 2,\n        \"imageUrl\": \"/uploads/2026/07/26/new-cover.jpg\",\n        \"caption\": null,\n        \"cover\": true,\n        \"sortOrder\": 0\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"番茄炒蛋（改良版）\",\n    \"description\": \"减少糖量的家常版本\",\n    \"coverImageUrl\": \"/uploads/2026/07/26/new-cover.jpg\",\n    \"servings\": 3,\n    \"cookTimeMinutes\": 18,\n    \"createdAt\": \"2026-07-26T00:20:00\",\n    \"updatedAt\": \"2026-07-26T00:45:00\",\n    \"ingredients\": [],\n    \"steps\": [],\n    \"images\": [\n      {\n        \"id\": 2,\n        \"imageUrl\": \"/uploads/2026/07/26/new-cover.jpg\",\n        \"caption\": null,\n        \"cover\": true,\n        \"sortOrder\": 0\n      }\n    ]\n  }\n}"
             },
             {
               "name": "失败 - 菜谱不存在",
@@ -1283,7 +1283,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 0,\n  \"message\": \"ok\",\n  \"data\": null\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": null\n}"
             },
             {
               "name": "失败 - 菜谱不存在或已经删除",
