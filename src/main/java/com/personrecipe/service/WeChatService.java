@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -18,6 +19,8 @@ public class WeChatService {
 	private static final String CODE2SESSION_URL = "https://api.weixin.qq.com/sns/jscode2session";
 
 	private final RestClient restClient = RestClient.create();
+
+	private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
 	private final WeChatProperties weChatProperties;
 
@@ -43,12 +46,25 @@ public class WeChatService {
 				.queryParam("grant_type", "authorization_code")
 				.toUriString();
 
-		WeChatSessionResponse response = restClient
+		// 微信 jscode2session 返回的是 JSON，但 Content-Type 是 text/plain，
+		// 直接用 body(Class) 会报 no suitable HttpMessageConverter，故先取字符串再手动解析。
+		String rawBody = restClient
 				.get()
 				.uri(url)
 				.retrieve()
-				.body(WeChatSessionResponse.class);
+				.body(String.class);
 
+		if (!StringUtils.hasText(rawBody)) {
+			throw new BusinessException(502, "微信登录服务无响应");
+		}
+
+		WeChatSessionResponse response;
+		try {
+			response = jsonMapper.readValue(rawBody, WeChatSessionResponse.class);
+		} catch (Exception e) {
+			log.warn("解析微信 code2session 响应失败: {}", rawBody, e);
+			throw new BusinessException(502, "微信登录服务返回异常");
+		}
 		if (response == null) {
 			throw new BusinessException(502, "微信登录服务无响应");
 		}

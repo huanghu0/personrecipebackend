@@ -90,6 +90,7 @@ public class UserService {
 				.id(user.getId())
 				.nickname(user.getNickname())
 				.avatarUrl(user.getAvatarUrl())
+				.createdAt(user.getCreatedAt())
 				.build();
 	}
 }

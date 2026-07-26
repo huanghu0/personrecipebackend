@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "6eb40db2-f6fc-4aaa-9b12-personrecipe001",
     "name": "个人菜谱后端 API",
-    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；通用图片上传自动保存 coverImageUrl；头像上传自动保存 avatarUrl。\n5. 图片/头像上传请求需要在 Body 中重新选择本机图片文件，imageFilePath / avatarFilePath 仅作说明。\n\n响应约定：code=200 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
+    "description": "Spring Boot + MyBatis 个人菜谱后端完整接口集合。\n\n使用说明：\n1. 修改集合变量 baseUrl（默认 http://localhost:8080）。\n2. 真实微信登录时，把 wxCode 改为 wx.login() 返回的临时 code。\n3. 本地联调可用 WECHAT_MOCK_ENABLED=true 启动，此时 wxCode 会直接作为 openid。\n4. 登录成功后脚本自动保存 token；创建菜谱成功后自动保存 recipeId；通用图片上传自动保存 coverImageUrl；头像上传自动保存 avatarUrl。\n5. 图片/头像上传请求需要在 Body 中重新选择本机图片文件，imageFilePath / avatarFilePath 仅作说明。单张图片上限 10MB，整次请求上限 40MB。\n6. 用户信息（登录 / 资料相关接口）返回字段：id、nickname、avatarUrl、createdAt（注册时间）。\n\n响应约定：code=200 表示成功。参数校验通常返回 HTTP 400；鉴权拦截失败返回 HTTP 401；业务异常（如菜谱不存在）当前由项目代码返回 HTTP 200，但响应体 code 为 404。",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -150,7 +150,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzM4NCJ9.example.signature\",\n    \"expiresIn\": 604800,\n    \"user\": {\n      \"id\": 1,\n      \"nickname\": \"Postman测试用户\",\n      \"avatarUrl\": \"https://example.com/avatar.png\"\n    }\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzM4NCJ9.example.signature\",\n    \"expiresIn\": 604800,\n    \"user\": {\n      \"id\": 1,\n      \"nickname\": \"Postman测试用户\",\n      \"avatarUrl\": \"https://example.com/avatar.png\",\n      \"createdAt\": \"2026-07-26T12:00:00\"\n    }\n  }\n}"
             },
             {
               "name": "失败 - code 为空",
@@ -322,7 +322,7 @@
                 "profile"
               ]
             },
-            "description": "获取当前登录用户的 id / nickname / avatarUrl。"
+            "description": "获取当前登录用户的 id / nickname / avatarUrl / createdAt（注册时间）。"
           },
           "response": [
             {
@@ -336,7 +336,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\",\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "成功 - 尚未完善资料",
@@ -349,7 +349,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": null,\n    \"avatarUrl\": null\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": null,\n    \"avatarUrl\": null,\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "失败 - 未登录",
@@ -425,7 +425,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\",\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "成功 - 只更新昵称",
@@ -467,7 +467,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"只改昵称\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"只改昵称\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\",\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "成功 - 只更新头像URL",
@@ -509,7 +509,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/new-avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/new-avatar.jpg\",\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "失败 - 未传任何字段",
@@ -668,7 +668,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"厨房小能手\",\n    \"avatarUrl\": \"/uploads/2026/07/26/avatar.jpg\",\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "失败 - 昵称为空",
@@ -723,7 +723,7 @@
               "formdata": [
                 {
                   "key": "file",
-                  "description": "请在 Postman 中选择本机头像图片（jpg/png/webp/gif，单张不超过 5MB）。",
+                  "description": "请在 Postman 中选择本机头像图片（jpg/png/webp/gif，单张不超过 10MB）。",
                   "type": "file",
                   "src": "{{avatarFilePath}}"
                 }
@@ -754,7 +754,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\"\n  }\n}"
+              "body": "{\n  \"code\": 200,\n  \"message\": \"ok\",\n  \"data\": {\n    \"id\": 1,\n    \"nickname\": \"Postman测试用户\",\n    \"avatarUrl\": \"/uploads/2026/07/26/62f5d360de5e4abe85a64fde4cc70cb2.jpg\",\n    \"createdAt\": \"2026-07-26T12:00:00\"\n  }\n}"
             },
             {
               "name": "失败 - 文件类型不支持",
@@ -770,7 +770,7 @@
               "body": "{\n  \"code\": 400,\n  \"message\": \"仅支持 jpg/png/webp/gif 图片\",\n  \"data\": null\n}"
             },
             {
-              "name": "失败 - 文件超过 5MB",
+              "name": "失败 - 文件超过 10MB",
               "status": "Bad Request",
               "code": 400,
               "header": [
@@ -780,7 +780,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 400,\n  \"message\": \"图片过大，单张不超过 5MB\",\n  \"data\": null\n}"
+              "body": "{\n  \"code\": 400,\n  \"message\": \"图片过大，单张不超过 10MB\",\n  \"data\": null\n}"
             },
             {
               "name": "失败 - 未登录",
@@ -827,7 +827,7 @@
               "formdata": [
                 {
                   "key": "file",
-                  "description": "请在 Postman 中选择本机 jpg/png/webp/gif 文件，单张不超过 5MB。",
+                  "description": "请在 Postman 中选择本机 jpg/png/webp/gif 文件，单张不超过 10MB。",
                   "type": "file",
                   "src": "{{imageFilePath}}"
                 }
@@ -874,7 +874,7 @@
               "body": "{\n  \"code\": 400,\n  \"message\": \"仅支持 jpg/png/webp/gif 图片\",\n  \"data\": null\n}"
             },
             {
-              "name": "失败 - 文件超过 5MB",
+              "name": "失败 - 文件超过 10MB",
               "status": "Bad Request",
               "code": 400,
               "header": [
@@ -884,7 +884,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"code\": 400,\n  \"message\": \"图片过大，单张不超过 5MB\",\n  \"data\": null\n}"
+              "body": "{\n  \"code\": 400,\n  \"message\": \"图片过大，单张不超过 10MB\",\n  \"data\": null\n}"
             },
             {
               "name": "失败 - 未登录",
