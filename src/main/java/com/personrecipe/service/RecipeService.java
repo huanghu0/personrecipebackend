@@ -57,7 +57,7 @@ public class RecipeService {
 
 	/**
 	 * 更新菜谱：覆盖基本信息，并整体替换食材 / 步骤 / 成品图关联。
-	 * 仅删除数据库中的旧关联记录，本地图片文件保留。
+	 * 仅删除数据库中的旧关联记录，七牛云对象暂不删除。
 	 */
 	@Transactional
 	public RecipeDetailVO update(Long id, CreateRecipeRequest request) {
@@ -74,7 +74,7 @@ public class RecipeService {
 		existing.setCookTimeMinutes(request.getCookTimeMinutes());
 		recipeMapper.update(existing);
 
-		// 先删库中旧关联，再写入新关联；本地文件不动
+		// 先删库中旧关联，再写入新关联；七牛云对象暂不删除
 		recipeIngredientMapper.deleteByRecipeId(id);
 		recipeStepMapper.deleteByRecipeId(id);
 		recipeImageMapper.deleteByRecipeId(id);
@@ -87,7 +87,7 @@ public class RecipeService {
 	}
 
 	/**
-	 * 软删除菜谱：仅置 deleted_at，食材 / 步骤 / 图片关联及本地文件均保留。
+	 * 软删除菜谱：仅置 deleted_at，食材 / 步骤 / 图片关联及七牛云对象均保留。
 	 */
 	@Transactional
 	public void delete(Long id) {

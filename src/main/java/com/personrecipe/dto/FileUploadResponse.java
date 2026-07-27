@@ -8,7 +8,7 @@ import lombok.Data;
 public class FileUploadResponse {
 
 	/**
-	 * 可访问的相对路径，如 /uploads/2026/07/26/xxx.jpg。
+	 * 七牛云上的完整访问地址。
 	 */
 	private String url;
 }

@@ -45,7 +45,7 @@ public class RecipeController {
 
 	/**
 	 * 更新菜谱（需登录）。请求体与创建相同，整体替换食材 / 步骤关联。
-	 * 仅删除数据库旧关联，本地图片文件保留；详情查询只返回当前仍关联的图片。
+	 * 仅删除数据库旧关联，七牛云对象暂不删除；详情查询只返回当前仍关联的图片。
 	 */
 	@PutMapping("/{id}")
 	public ApiResponse<RecipeDetailVO> update(@PathVariable Long id,

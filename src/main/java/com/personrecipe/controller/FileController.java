@@ -18,7 +18,7 @@ public class FileController {
 	private final FileStorageService fileStorageService;
 
 	/**
-	 * 上传图片到本地，返回可访问 URL。
+	 * 由后端接收图片并上传到七牛云，返回可访问 URL。
 	 * 表单字段名：file
 	 */
 	@PostMapping("/upload")

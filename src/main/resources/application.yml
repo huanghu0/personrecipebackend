@@ -29,15 +29,10 @@ mybatis:
 server:
   port: 8080
 
-# 本地图片上传
-file:
-  upload-dir: ${FILE_UPLOAD_DIR:uploads}
-  access-path: /uploads
-
 # 微信小程序配置（请替换为你的真实 appId / secret）
 wechat:
-  app-id: ${WECHAT_APP_ID:your-app-id}
-  app-secret: ${WECHAT_APP_SECRET:your-app-secret}
+  app-id: ${WECHAT_APP_ID:app-id}
+  app-secret: ${WECHAT_APP_SECRET:app-secret}
   # 本地联调可开 mock：不调微信接口，用 code 当作 openid
   mock-enabled: ${WECHAT_MOCK_ENABLED:false}
 
@@ -45,3 +40,10 @@ wechat:
 jwt:
   secret: ${JWT_SECRET:person-recipe-jwt-secret-change-me-please-32bytes!!}
   expire-days: 7
+
+# 七牛云配置
+qiniu:
+  access-key: access-key
+  secret-key: secret-key
+  bucket: bucket
+  domain: domain
